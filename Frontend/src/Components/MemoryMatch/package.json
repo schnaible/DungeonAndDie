@@ -1,0 +1,8 @@
+{
+  "name": "MemoryMatch",
+  "version": "1.0.0",
+  "dependencies": {},
+  "devDependencies": {
+    "@material-ui/core": "^4.12.3"
+  }
+}

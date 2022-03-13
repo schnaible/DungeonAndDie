@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Hot Pursuit</title>
+
+    <style>
+        * { padding: 0; margin: 0; }
+        canvas { background: #000000; display: block; margin: 0; padding: 0; }
+    </style>
+
+</head>
+<body>
+
+<script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/molleindustria/p5.play@42cd19c3/lib/p5.play.js"></script>
+
+</canvas>
+
+
+
+<script>
+    // Player variables
+    var player;
+    var playerSizeX = 25;
+    var playerSizeY = 25;
+
+    // Fireball variables
+    var fireballFromUp;
+    var fireballFromDown;
+    var fireballFromLeft;
+    var fireballFromRight;
+    var hitEdge = false;
+
+    // Variable to store round of fireballs.
+    var roundsLeft = 10;
+
+    // Get dice roll for difficulty.
+    var diceRoll = Math.floor(Math.random() * 6) + 1;
+
+    // Image variables
+    var playerImageRight;
+    var playerImageLeft;
+    var fireballImage;
+    var backgroundImage;
+
+    // Starting game variable
+    var starter = 0;
+
+    // On wake: create images.
+    function preload() {
+        playerImageRight = loadImage('/Textures/Player.png');
+        playerImageLeft = loadImage('Textures/PlayerMirrored.png');
+        fireballImage = loadImage('Textures/Fireball.png');
+        backgroundImage = loadImage('/Textures/Background.png');
+    }
+
+    // Function on wake.
+    function setup() {
+        // Draw out our canvas.
+        createCanvas(420, 420);
+
+        // Create our player and spawn in the middle of canvas.
+        player = createSprite(width / 2, height - (playerImageRight.height / 2), 0, 0);
+        fireballFromUp = createSprite(width / 2, 0, 0, 0);
+        fireballFromDown = createSprite(width / 2, height, 0, 0);
+        fireballFromLeft = createSprite(0, height / 2, 0, 0);
+        fireballFromRight = createSprite(width, height / 2, 0, 0);
+
+        // load sprite images
+        player.addImage(playerImageRight);
+        fireballFromUp.addImage(fireballImage);
+        fireballFromDown.addImage(fireballImage);
+        fireballFromLeft.addImage(fireballImage);
+        fireballFromRight.addImage(fireballImage);
+
+        // Rotate the fireballs
+        fireballFromUp.rotationSpeed = 4.0;
+        fireballFromDown.rotationSpeed = 4.0;
+        fireballFromLeft.rotationSpeed = 4.0;
+        fireballFromRight.rotationSpeed = 4.0;
+    }
+
+    function drawText() {
+        textAlign(CENTER);
+        fill('white');
+        stroke('black');
+        strokeWeight(2);
+        textSize(15);
+        text("Difficulty: " + diceRoll, width - 50, 20);
+        text("Rounds left: " + roundsLeft, 55, 20);
+    }
+
+    function checkCollision() {
+        if (fireballFromLeft.overlap(player) || fireballFromRight.overlap(player)
+            || fireballFromUp.overlap(player) || fireballFromDown.overlap(player)) {
+            alert("You've been burnt to a crisp!");
+            // TODO: Make game close window
+
+            // Start the game over.
+            resetGame();
+        }
+    }
+
+    function resetGame() {
+        // Reset all positions and die roll for testing purposes
+        player.position.x = width / 2;
+        player.position.y = height / 2;
+
+        fireballFromUp.position.x = width / 2;
+        fireballFromUp.position.y = 0;
+
+        fireballFromDown.position.x = width / 2;
+        fireballFromDown.position.y = height;
+
+        fireballFromLeft.position.x = 0;
+        fireballFromLeft.position.y = height / 2;
+
+        fireballFromRight.position.x = width;
+        fireballFromRight.position.y = height / 2;
+
+        diceRoll = Math.floor(Math.random() * 6) + 1;
+        roundsLeft = 10;
+    }
+
+    function constrainPlayerMovement() {
+        if (keyDown(LEFT_ARROW) && player.position.x > 20) { // Left
+            player.position.x -= 2;
+            player.addImage(playerImageLeft);
+        }
+        if (keyDown(RIGHT_ARROW) && player.position.x < width - 20) { // Right
+            player.position.x += 2;
+            player.addImage(playerImageRight);
+        }
+        if (keyDown(UP_ARROW) && player.position.y > 25) { // Up
+            player.position.y -= 2;
+        }
+        if (keyDown(DOWN_ARROW) && player.position.y < height - 25) { // Down
+            player.position.y += 2;
+        }
+    }
+
+    function moveFireBalls() {
+        if (roundsLeft === 10) {
+            fireballFromUp.position.y += 2;
+            fireballFromDown.position.y -= 2;
+            fireballFromLeft.position.x += 2;
+            fireballFromRight.position.x -= 2;
+        }
+        else {
+            fireballFromUp.position.y += diceRoll;
+            fireballFromDown.position.y -= diceRoll;
+            fireballFromLeft.position.x += diceRoll;
+            fireballFromRight.position.x -= diceRoll;
+        }
+    }
+
+    function resetFireballs() {
+        if (fireballFromUp.position.y > height) { // Up
+            fireballFromUp.position.y = 0;
+            fireballFromUp.position.x = Math.floor(Math.random() * width - 12) + 12;
+            hitEdge = true;
+        }
+        if (fireballFromDown.position.y < 0) { // Down
+            fireballFromDown.position.y = height;
+            fireballFromDown.position.x = Math.floor(Math.random() * width - 12) + 12;
+            hitEdge = true;
+        }
+        if (fireballFromLeft.position.x > width) { // Left
+            fireballFromLeft.position.x = 0;
+            fireballFromLeft.position.y = Math.floor(Math.random() * height - 12) + 12;
+            hitEdge = true;
+        }
+        if (fireballFromRight.position.x < 0) { // Right
+            fireballFromRight.position.x = width;
+            fireballFromRight.position.y = Math.floor(Math.random() * height - 12) + 12;
+            hitEdge = true;
+        }
+
+        // Decrement rounds left if the fireballs hit the edge.
+        if (hitEdge) {
+            roundsLeft -= 1;
+            hitEdge = false;
+        }
+    }
+
+    function checkGameOver() {
+        if (roundsLeft === 0) {
+            alert("You survived!");
+            resetGame();
+        }
+    }
+
+    function startGame() {
+        if (starter === 0) {
+            starter++;
+            resetGame();
+        }
+    }
+
+    function draw() {
+        startGame();
+
+        // Check for collision.
+        checkCollision();
+
+        // Paint the background.
+        background(backgroundImage);
+
+        // Draw our text up top
+        drawText();
+
+        // Move player and keep within boundaries.
+        constrainPlayerMovement();
+
+        // Keep the fireballs raining down onto the player
+        // from all directions.
+        moveFireBalls();
+
+        // Reset our fireballs if they reach the end of the canvas.
+        // Also give them random x/y coordinates after resetting.
+        resetFireballs();
+
+        // Constantly check if we're out of fireball rounds.
+        checkGameOver();
+
+        // Draw our player.
+        drawSprites();
+    }
+
+</script>
+
+</body>
+</html>

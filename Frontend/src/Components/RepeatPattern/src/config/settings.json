@@ -1,0 +1,6 @@
+{
+    "game": {
+        "CELL_SHOW_TIME": 5000,
+        "LEVEL_LIMIT_TIME": 15
+    }
+}
